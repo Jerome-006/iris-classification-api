@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request
 import joblib
 import logging
+import time
+import uuid
 
-from app.models.schemas import PredictionInput, PredictionOutput
+from app.models.schemas import (PredictionInput, PredictionOutput, PredictionBatchInput, PredictionBatchOutput)
 
 router = APIRouter(prefix="/api/v1")
 
@@ -70,4 +72,98 @@ def predict(request: Request, data: PredictionInput):
         "prediction": int(prediction[0]),
         "confidence": confidence,
         "request_id": request_id
+    }
+
+
+@router.post("/predict-batch", response_model=PredictionBatchOutput)
+def predict_batch(request: Request, data: PredictionBatchInput):
+    start_time = time.time()
+
+    if model is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Model is not loaded"
+        )
+
+    if not data.inputs:
+        raise HTTPException(
+            status_code=400,
+            detail="Input list cannot be empty"
+        )
+
+    if len(data.inputs) > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="Maximum batch size is 100"
+        )
+
+    try:
+        # Prepare all features at once
+        features = [
+            [
+                item.sepal_length,
+                item.sepal_width,
+                item.petal_length,
+                item.petal_width
+            ]
+            for item in data.inputs
+        ]
+
+        # Predict the whole batch at once
+        predictions = model.predict(features)
+
+        confidences = [None] * len(data.inputs)
+
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(features)
+            confidences = [
+                float(max(probability))
+                for probability in probabilities
+            ]
+
+        results = []
+
+        for i, prediction in enumerate(predictions):
+            results.append(
+                PredictionOutput(
+                    prediction=int(prediction),
+                    confidence=confidences[i],
+                    request_id=str(uuid.uuid4())
+                )
+            )
+
+        duration = time.time() - start_time
+
+        logger.info(
+            f"batch_prediction "
+            f"batch_size={len(data.inputs)} "
+            f"duration={duration:.4f}s"
+        )
+
+        return PredictionBatchOutput(
+            predictions=results
+        )
+
+    except Exception as e:
+        logger.error(
+            f"batch prediction failed: {str(e)}",
+            exc_info=True
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Batch prediction failed"
+        )
+
+@router.get("/model-info")
+def model_info():
+    if model is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Model is not loaded"
+        )
+
+    return {
+        "model_type": type(model).__name__,
+        "model_loaded": True
     }
