@@ -3,6 +3,7 @@ import joblib
 import logging
 import time
 import uuid
+import json
 
 from app.models.schemas import (PredictionInput, PredictionOutput, PredictionBatchInput, PredictionBatchOutput)
 
@@ -15,6 +16,13 @@ try:
     model = joblib.load("ml/saved_model/model.joblib")
 except Exception:
     model = None
+
+# Load model metadata
+try:
+    with open("ml/saved_model/metadata.json", "r") as f:
+        metadata = json.load(f)
+except Exception:
+    metadata = {}
 
 
 @router.get("/health")
@@ -165,5 +173,8 @@ def model_info():
 
     return {
         "model_type": type(model).__name__,
-        "model_loaded": True
+        "version": metadata.get("version"),
+        "training_date": metadata.get("training_date"),
+        "expected_features": metadata.get("expected_features"),
+        "accuracy": metadata.get("accuracy")
     }
