@@ -42,6 +42,7 @@ metadata = {
 # Save Model
 joblib.dump(model, "ml/saved_model/model.joblib")
 print("Model saved")
+
 with open("ml/saved_model/metadata.json", "w") as f:
     json.dump(metadata, f, indent=4)
 

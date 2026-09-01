@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from app.config import settings
 import joblib
 import logging
 import time
@@ -13,15 +14,19 @@ logger = logging.getLogger(__name__)
 
 # Load model once
 try:
-    model = joblib.load("ml/saved_model/model.joblib")
-except Exception:
+    model = joblib.load(settings.MODEL_PATH)
+    print("MODEL LOADED:",
+settings.MODEL_PATH)
+except Exception as e:
+    print("MODEL LOAD ERROR:",e)
     model = None
 
 # Load model metadata
 try:
-    with open("ml/saved_model/metadata.json", "r") as f:
+    with open(settings.MODEL_METADATA_PATH, "r") as f:
         metadata = json.load(f)
-except Exception:
+except Exception as e:
+    print("METADATA LOAD ERROR:", e)
     metadata = {}
 
 
@@ -99,10 +104,10 @@ def predict_batch(request: Request, data: PredictionBatchInput):
             detail="Input list cannot be empty"
         )
 
-    if len(data.inputs) > 100:
+    if len(data.inputs) > settings.MAX_BATCH_SIZE:
         raise HTTPException(
             status_code=400,
-            detail="Maximum batch size is 100"
+            detail=f"Maximum batch size is {settings.MAX_BATCH_SIZE}"
         )
 
     try:

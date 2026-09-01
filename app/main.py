@@ -1,4 +1,5 @@
 from app.logging_config import setup_logging
+from app.config import settings
 import logging
 import time
 from fastapi.responses import JSONResponse
@@ -9,7 +10,7 @@ import uuid
 from app.models.schemas import PredictionInput, PredictionOutput
 from app.routers.v1 import router as v1_router
 
-app = FastAPI()
+app = FastAPI(title=settings.API_TITLE)
 
 app.include_router(v1_router)
 
@@ -48,7 +49,7 @@ async def prediction_error_handler(request, exc):
 
 # Load model only once at startup
 try:
-    model = joblib.load("ml/saved_model/model.joblib")
+    model = joblib.load(settings.MODEL_PATH)
 except Exception:
     model = None
 

@@ -1,13 +1,14 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+from app.config import settings
 
 
 def setup_logging():
     os.makedirs("logs", exist_ok=True)
 
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(getattr(logging,settings.LOG_LEVEL))
 
     formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | %(message)s"
