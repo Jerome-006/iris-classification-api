@@ -4,6 +4,7 @@ import logging
 import time
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 import joblib
 import uuid
 
@@ -12,6 +13,14 @@ from app.routers.v1 import router as v1_router
 from app.routers.v2 import router as v2_router
 
 app = FastAPI(title=settings.API_TITLE)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["X-API-Key", "Content-Type"],
+)
 
 app.include_router(v1_router)
 app.include_router(v2_router)

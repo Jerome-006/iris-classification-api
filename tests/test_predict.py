@@ -1,3 +1,5 @@
+from app.config import settings
+
 def test_predict_valid_input(client):
     payload = {
         "sepal_length": 5.1,
@@ -6,7 +8,11 @@ def test_predict_valid_input(client):
         "petal_width": 0.2
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post(
+    "/api/v1/predict",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     assert response.status_code == 200
 
@@ -27,7 +33,11 @@ def test_predict_missing_field(client):
         "petal_length": 1.4
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post(
+    "/api/v1/predict",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     assert response.status_code == 422
 
@@ -40,6 +50,10 @@ def test_predict_invalid_field(client):
         "petal_width": 0.2
     }
 
-    response = client.post("/api/v1/predict", json=payload)
+    response = client.post(
+    "/api/v1/predict",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     assert response.status_code == 422

@@ -1,4 +1,6 @@
 import pytest
+from app.config import settings
+
 
 def test_v1_and_v2_response_shapes(client):
 
@@ -10,14 +12,16 @@ def test_v1_and_v2_response_shapes(client):
     }
 
     v1_response = client.post(
-        "/api/v1/predict",
-        json=payload
-    )
+    "/api/v1/predict",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     v2_response = client.post(
-        "/api/v2/predict",
-        json=payload
-    )
+    "/api/v2/predict",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     assert v1_response.status_code == 200
     assert v2_response.status_code == 200

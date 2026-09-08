@@ -1,3 +1,5 @@
+from app.config import settings
+
 def test_predict_batch_oversized(client):
     payload = {
         "inputs": [
@@ -10,7 +12,11 @@ def test_predict_batch_oversized(client):
         ] * 11
     }
 
-    response = client.post("/api/v1/predict-batch", json=payload)
+    response = client.post(
+    "/api/v1/predict-batch",
+    json=payload,
+    headers={"X-API-Key": settings.API_KEY}
+)
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Maximum batch size is 10"

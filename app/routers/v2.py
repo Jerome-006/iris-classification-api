@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from app.config import settings
 from app.models.schemas import PredictionInput
 from app.models.schemas_v2 import PredictionV2Output
+from app.routers.v1 import verify_api_key
 
 import joblib
 import logging
@@ -22,7 +23,11 @@ except Exception as e:
     model = None
 
 
-@router.post("/predict", response_model=PredictionV2Output)
+@router.post(
+    "/predict",
+    response_model=PredictionV2Output,
+    dependencies=[Depends(verify_api_key)]
+)
 def predict_v2(request: Request, data: PredictionInput):
 
     if model is None:

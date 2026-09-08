@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi.security import APIKeyHeader
 from app.config import settings
 import joblib
 import logging
@@ -11,6 +12,17 @@ from app.models.schemas import (PredictionInput, PredictionOutput, PredictionBat
 router = APIRouter(prefix="/api/v1")
 
 logger = logging.getLogger(__name__)
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def verify_api_key(api_key: str = Depends(api_key_header)):
+    if api_key != settings.API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key"
+        )
+    return api_key
 
 # Load model once
 try:
@@ -30,7 +42,10 @@ except Exception as e:
     metadata = {}
 
 
-@router.get("/health")
+@router.get(
+    "/health",
+    dependencies=[Depends(verify_api_key)]
+)
 def health():
     return {
         "status": "ok",
@@ -38,7 +53,11 @@ def health():
     }
 
 
-@router.post("/predict", response_model=PredictionOutput)
+@router.post(
+    "/predict",
+    response_model=PredictionOutput,
+    dependencies=[Depends(verify_api_key)]
+)
 def predict(request: Request, data: PredictionInput):
 
     if model is None:
@@ -88,7 +107,11 @@ def predict(request: Request, data: PredictionInput):
     }
 
 
-@router.post("/predict-batch", response_model=PredictionBatchOutput)
+@router.post(
+    "/predict-batch",
+    response_model=PredictionBatchOutput,
+    dependencies=[Depends(verify_api_key)]
+)
 def predict_batch(request: Request, data: PredictionBatchInput):
     start_time = time.time()
 
@@ -168,7 +191,10 @@ def predict_batch(request: Request, data: PredictionBatchInput):
             detail="Batch prediction failed"
         )
 
-@router.get("/model-info")
+@router.get(
+    "/model-info",
+    dependencies=[Depends(verify_api_key)]
+)
 def model_info():
     if model is None:
         raise HTTPException(

@@ -1,12 +1,14 @@
-from pydantic import BaseModel
-from typing import Optional,List
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional, List
 
 
 class PredictionInput(BaseModel):
-    sepal_length: float
-    sepal_width: float
-    petal_length: float
-    petal_width: float
+    sepal_length: float = Field(gt=0, lt=100)
+    sepal_width: float = Field(gt=0, lt=100)
+    petal_length: float = Field(gt=0, lt=100)
+    petal_width: float = Field(gt=0, lt=100)
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class PredictionOutput(BaseModel):
