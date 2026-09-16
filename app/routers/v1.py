@@ -7,11 +7,19 @@ import time
 import uuid
 import json
 
+
 from app.models.schemas import (PredictionInput, PredictionOutput, PredictionBatchInput, PredictionBatchOutput)
+from prometheus_client import Counter
 
 router = APIRouter(prefix="/api/v1")
 
 logger = logging.getLogger(__name__)
+
+prediction_counter = Counter(
+    "ml_predictions_total",
+    "Total number of successful ML predictions",
+    ["predicted_class"]
+)
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
@@ -93,6 +101,10 @@ def predict(request: Request, data: PredictionInput):
         )
 
     request_id = request.state.request_id
+
+    prediction_counter.labels(
+    predicted_class=str(int(prediction[0]))
+).inc()
 
     logger.info(
         f"request_id={request_id} "

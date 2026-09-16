@@ -11,6 +11,7 @@ import uuid
 from app.models.schemas import PredictionInput, PredictionOutput
 from app.routers.v1 import router as v1_router
 from app.routers.v2 import router as v2_router
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title=settings.API_TITLE)
 
@@ -24,6 +25,8 @@ app.add_middleware(
 
 app.include_router(v1_router)
 app.include_router(v2_router)
+
+Instrumentator().instrument(app).expose(app)
 
 setup_logging()
 logger = logging.getLogger(__name__)
