@@ -38,8 +38,8 @@ def verify_api_key(api_key: str = Depends(api_key_header)):
 try:
     with open(settings.MODEL_METADATA_PATH, "r") as f:
         metadata = json.load(f)
-except Exception as e:
-    print("METADATA LOAD ERROR:", e)
+except Exception:
+    logger.error("METADATA LOAD ERROR", exc_info=True)
     metadata = {}
 
 
@@ -97,7 +97,7 @@ def predict(request: Request, data: PredictionInput):
 
     prediction_counter.labels(
     predicted_class=str(int(prediction[0]))
-).inc()
+    ).inc()
 
     logger.info(
         f"request_id={request_id} "

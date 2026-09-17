@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from app.config import settings
 from app.models.schemas import PredictionInput
 from app.models.schemas_v2 import PredictionV2Output
 from app.routers.v1 import verify_api_key
