@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.security import APIKeyHeader
 from app.config import settings
-import joblib
+from app.services.model_service import model
 import logging
 import time
 import uuid
@@ -32,14 +32,7 @@ def verify_api_key(api_key: str = Depends(api_key_header)):
         )
     return api_key
 
-# Load model once
-try:
-    model = joblib.load(settings.MODEL_PATH)
-    print("MODEL LOADED:",
-settings.MODEL_PATH)
-except Exception as e:
-    print("MODEL LOAD ERROR:",e)
-    model = None
+
 
 # Load model metadata
 try:

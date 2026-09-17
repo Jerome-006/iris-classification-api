@@ -4,7 +4,7 @@ from app.models.schemas import PredictionInput
 from app.models.schemas_v2 import PredictionV2Output
 from app.routers.v1 import verify_api_key
 
-import joblib
+from app.services.model_service import model
 import logging
 import uuid
 
@@ -14,13 +14,6 @@ router = APIRouter(prefix="/api/v2")
 logger = logging.getLogger(__name__)
 
 
-# Load model
-try:
-    model = joblib.load(settings.MODEL_PATH)
-    print("V2 MODEL LOADED:", settings.MODEL_PATH)
-except Exception as e:
-    print("V2 MODEL LOAD ERROR:", e)
-    model = None
 
 
 @router.post(

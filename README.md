@@ -38,7 +38,7 @@ The API key is stored in the environment configuration and is never hardcoded in
 
 Example:
 
-X-API-Key: my-dev-api-key-2026
+X-API-Key: <your-api-key>
 
 Requests without a valid API key are rejected with HTTP status code 401 Unauthorized.
 
@@ -79,3 +79,62 @@ MODEL_METADATA_PATH=ml/saved_model/metadata.json
 LOG_LEVEL=INFO
 MAX_BATCH_SIZE=10
 API_TITLE=Iris Classification API
+API_KEY=<your-api-key>
+```
+
+## Run the API
+
+### Local Development
+
+Activate the virtual environment:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+
+## API Endpoints
+
+### Health Check
+
+GET /api/v1/health
+
+API and ML model available-aa irukka check pannum.
+
+Requires:
+X-API-Key
+
+
+### Prediction
+
+POST /api/v1/predict
+
+Given iris measurements based on iris class predict pannum.
+
+Requires:
+X-API-Key
+
+
+### Batch Prediction
+
+POST /api/v1/predict-batch
+
+Multiple iris samples-a ore request-la predict pannum.
+
+Requires:
+X-API-Key
+
+
+### Model Information
+
+GET /api/v1/model-info
+
+Loaded ML model-oda information return pannum.
+
+Requires:
+X-API-Key
+
+
+### Metrics
+
+GET /metrics
+
+Prometheus monitoring metrics-a return pannum.

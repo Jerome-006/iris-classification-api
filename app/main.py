@@ -2,18 +2,17 @@ from app.logging_config import setup_logging
 from app.config import settings
 import logging
 import time
-from fastapi.responses import JSONResponse
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import joblib
 import uuid
 
-from app.models.schemas import PredictionInput, PredictionOutput
 from app.routers.v1 import router as v1_router
 from app.routers.v2 import router as v2_router
 from prometheus_fastapi_instrumentator import Instrumentator
 
+
 app = FastAPI(title=settings.API_TITLE)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,13 +22,17 @@ app.add_middleware(
     allow_headers=["X-API-Key", "Content-Type"],
 )
 
+
 app.include_router(v1_router)
 app.include_router(v2_router)
 
+
 Instrumentator().instrument(app).expose(app)
+
 
 setup_logging()
 logger = logging.getLogger(__name__)
+
 
 @app.middleware("http")
 async def logging_middleware(request, call_next):
@@ -51,80 +54,7 @@ async def logging_middleware(request, call_next):
 
     return response
 
-class predictionError(Exception): pass
-
-@app.exception_handler(predictionError)
-async def prediction_error_handler(request, exc):
-    return JSONResponse(
-        status_code=500, content={
-            "detail":"prediction failed"
-        }
-    )
-
-# Load model only once at startup
-try:
-    model = joblib.load(settings.MODEL_PATH)
-except Exception:
-    model = None
-
 
 @app.get("/")
 def home():
     return {"message": "Iris API running"}
-
-
-# @app.get("/health")
-# def health():
-#     return {
-#         "status": "ok",
-#         "model_loaded": model is not None
-#     }
-
-
-# @app.post("/predict", response_model=PredictionOutput)
-# def predict(request: Request,data: PredictionInput):
-
-#     if model is None:
-#         raise HTTPException(
-#             status_code=503,
-#             detail="Model is not loaded"
-#         )
-
-#     try:
-#         features = [[
-#             data.sepal_length,
-#             data.sepal_width,
-#             data.petal_length,
-#             data.petal_width
-#         ]]
-
-#         prediction = model.predict(features)
-
-#         # Confidence if model supports predict_proba
-#         confidence = None
-
-#         if hasattr(model, "predict_proba"):
-#             probabilities = model.predict_proba(features)
-#             confidence = float(max(probabilities[0]))
-
-#     except Exception as e:
-#         logger.error(
-#             f"request_id={request.state.request_id} prediction failed",
-#             exc_info=True
-#         )
-#         raise HTTPException(
-#             status_code=500,
-#             detail="Prediction failed"
-#         )
-
-#     request_id = request.state.request_id
-
-#     logger.info(
-#     f"request_id={request_id} prediction={int(prediction[0])} confidence={confidence}"
-# )
-
-#     return {
-#         "prediction": int(prediction[0]),
-#         "confidence": confidence,
-#         "request_id": request_id
-#     }
